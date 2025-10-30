@@ -1,0 +1,85 @@
+# ドキュメント構造 (2025-10-30更新)
+
+## ルートディレクトリ
+
+```
+/
+├── README.md          # プロジェクトのメインREADME
+├── CLAUDE.md          # Claude Code用の開発ガイド
+└── CHANGELOG.md       # 変更履歴
+```
+
+## docsディレクトリ
+
+```
+docs/
+├── README.md          # ドキュメントの索引
+├── IMPLEMENTATION.md  # 実装ガイド（最新の検証済み情報）
+├── USAGE.md           # 使用ガイド
+└── DESIGN.md          # 設計ドキュメント
+```
+
+## 削除されたドキュメント
+
+以下のドキュメントは、情報が古くなったか、他のドキュメントに統合されたため削除されました：
+
+- ❌ CODE_REVIEW.md - 古いコードレビュー
+- ❌ CRITICAL_FIX_CHANNELS_LAST.md - IMPLEMENTATION.mdに統合
+- ❌ FINAL_CHANNELS_LAST_FIX_SUMMARY.md - IMPLEMENTATION.mdに統合
+- ❌ IMPLEMENTATION_REVIEW.md - 古いレビュー
+- ❌ IMPROVEMENTS.md - 古い改善提案
+- ❌ MLX_IMPLEMENTATION_VERIFICATION.md - IMPLEMENTATION.mdに統合
+- ❌ REMAINING_TASKS.md - 古いタスクリスト
+- ❌ COMPLETE_IMPLEMENTATION_VERIFICATION.md - IMPLEMENTATION.mdに統合
+
+## ドキュメントの役割
+
+### README.md (ルート)
+- プロジェクトの概要
+- クイックスタート
+- インストール方法
+- 基本的な使用例
+
+### docs/IMPLEMENTATION.md
+- MLX Swift channels-last形式の詳細
+- 完全な形状フロー
+- MLX Swift規約への準拠
+- トラブルシューティング
+- パフォーマンス最適化
+
+### docs/USAGE.md
+- 詳細な使用例
+- HuggingFace統合
+- バッチ処理
+- 実用的なコード例
+
+### docs/DESIGN.md
+- アーキテクチャ設計
+- レイヤーの詳細
+- 重み変換の仕組み
+- 設計の決定理由
+
+### CLAUDE.md
+- Claude Code用の開発指示
+- プロジェクト構造
+- 開発コマンド
+- テスト戦略
+
+### CHANGELOG.md
+- バージョン履歴
+- 変更内容の詳細
+
+## 整理の原則
+
+1. **最新情報の一元化** - 重複した情報を1箇所にまとめる
+2. **明確な役割分担** - 各ドキュメントの目的を明確にする
+3. **ユーザーフレンドリー** - 初心者から上級者まで使いやすく
+4. **保守性** - 更新しやすい構造
+
+## 更新履歴
+
+- 2025-10-30: ドキュメント大規模整理
+  - 8つの古いドキュメントを削除
+  - docsディレクトリを作成
+  - IMPLEMENTATION.mdに最新情報を統合
+  - README.mdを更新（channels-last形式の反映）

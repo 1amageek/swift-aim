@@ -147,18 +147,18 @@ All models are available on [HuggingFace](https://huggingface.co/collections/app
 
 ## Architecture
 
-Swift-AIM implements the AIMv2 Vision Transformer architecture:
+Swift-AIM implements the AIMv2 Vision Transformer architecture using MLX Swift's **channels-last** format:
 
 ```
-Input Image [B, 3, H, W]
+Input Image [B, H, W, C]  ← MLX channels-last format
     ↓
-Patch Embedding (14×14 patches)
+Patch Embedding (14×14 patches via Conv2d)
     ↓
 Add CLS Token
     ↓
-Add Position Embedding
+Add Position Embedding (absolute or sincos)
     ↓
-Transformer Blocks (×12)
+Transformer Blocks (×N)
     ↓
 Layer Normalization
     ↓
@@ -288,9 +288,9 @@ let configSincos = AIMv2Configuration(
 ### Batch Processing
 
 ```swift
-// Create batch of images
+// Create batch of images (channels-last format)
 let batchSize = 4
-let pixels = MLXRandom.normal([batchSize, 3, 224, 224])
+let pixels = MLXRandom.normal([batchSize, 224, 224, 3])
 
 // Forward pass
 let features = model(pixels)  // [4, 257, 768]
@@ -304,10 +304,11 @@ for i in 0..<batchSize {
 
 ## Documentation
 
-- [USAGE.md](USAGE.md) - Comprehensive usage guide with examples
-- [CLAUDE.md](CLAUDE.md) - Development guide and architecture overview
-- [IMPROVEMENTS.md](IMPROVEMENTS.md) - Code review and improvement plan
-- [CHANGELOG.md](CHANGELOG.md) - Detailed change history
+- [Implementation Guide](docs/IMPLEMENTATION.md) - Architecture and implementation details
+- [Usage Guide](docs/USAGE.md) - Comprehensive usage examples
+- [Design Document](docs/DESIGN.md) - Design decisions and architecture
+- [Development Guide](CLAUDE.md) - Development guide for contributors
+- [Change Log](CHANGELOG.md) - Detailed change history
 
 ## Development
 
