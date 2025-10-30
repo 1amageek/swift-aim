@@ -22,7 +22,7 @@ struct LayerTests {
                 embedDim: 768
             )
 
-            let input = MLXRandom.normal([2, 3, 224, 224])
+            let input = MLXRandom.normal([2, 224, 224, 3])
             let output = patchEmbed(input)
 
             // Expected: [B, N, D] where N = (224/14)^2 = 256
@@ -44,7 +44,7 @@ struct LayerTests {
                 embedDim: 384
             )
 
-            let input = MLXRandom.normal([1, 3, imageSize, imageSize])
+            let input = MLXRandom.normal([1, imageSize, imageSize, 3])
             let output = patchEmbed(input)
 
             #expect(output.shape[1] == expectedPatches)
@@ -74,7 +74,7 @@ struct LayerTests {
 
             let batchSizes = [1, 2, 4, 8]
             for batchSize in batchSizes {
-                let input = MLXRandom.normal([batchSize, 3, 224, 224])
+                let input = MLXRandom.normal([batchSize, 224, 224, 3])
                 let output = patchEmbed(input)
                 #expect(output.shape[0] == batchSize)
             }
@@ -315,7 +315,7 @@ struct LayerTests {
             )
 
             // Input image
-            let image = MLXRandom.normal([1, 3, 224, 224])
+            let image = MLXRandom.normal([1, 224, 224, 3])
 
             // Through patch embedding
             let patches = patchEmbed(image)

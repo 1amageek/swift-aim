@@ -86,9 +86,10 @@ struct ImagePreprocessorTests {
         let expectedG = -0.456 / 0.224
         let expectedB = -0.406 / 0.225
 
-        let r = normalized[0, 0, 0, 0].item(Float.self)
-        let g = normalized[0, 1, 0, 0].item(Float.self)
-        let b = normalized[0, 2, 0, 0].item(Float.self)
+        // Access channels in channels-last format [B, H, W, C]
+        let r = normalized[0, 0, 0, 0].item(Float.self)  // R channel
+        let g = normalized[0, 0, 0, 1].item(Float.self)  // G channel
+        let b = normalized[0, 0, 0, 2].item(Float.self)  // B channel
 
         #expect(abs(Double(r) - Double(expectedR)) < 0.01)
         #expect(abs(Double(g) - Double(expectedG)) < 0.01)
@@ -97,21 +98,21 @@ struct ImagePreprocessorTests {
 
     // MARK: - Shape Transformation Tests
 
-    @Test("Shape transformation HWC to BCHW")
+    @Test("Shape transformation HWC to BHWC (channels-last)")
     func testShapeTransformation() {
         let preprocessor = ImagePreprocessor(imageSize: 224)
 
         // Input: [H, W, C]
         let input = MLXRandom.uniform(low: 0, high: 1, [224, 224, 3])
 
-        // Output: [1, C, H, W]
+        // Output: [1, H, W, C] (channels-last, MLX format)
         let output = preprocessor.preprocess(pixels: input)
 
         #expect(output.ndim == 4)
         #expect(output.shape[0] == 1)  // Batch
-        #expect(output.shape[1] == 3)  // Channels
-        #expect(output.shape[2] == 224) // Height
-        #expect(output.shape[3] == 224) // Width
+        #expect(output.shape[1] == 224) // Height
+        #expect(output.shape[2] == 224) // Width
+        #expect(output.shape[3] == 3)  // Channels
     }
 
     @Test("Channel ordering RGB preserved")
@@ -134,10 +135,10 @@ struct ImagePreprocessorTests {
 
         let output = preprocessor.preprocess(pixels: pixels)
 
-        // Check R channel (index 0) is 1.0
-        let rValue = output[0, 0, 0, 0].item(Float.self)
-        let gValue = output[0, 1, 0, 0].item(Float.self)
-        let bValue = output[0, 2, 0, 0].item(Float.self)
+        // Check RGB channels at position (0,0) in channels-last format [B, H, W, C]
+        let rValue = output[0, 0, 0, 0].item(Float.self)  // R channel
+        let gValue = output[0, 0, 0, 1].item(Float.self)  // G channel
+        let bValue = output[0, 0, 0, 2].item(Float.self)  // B channel
 
         #expect(abs(rValue - 1.0) < 0.001)
         #expect(abs(gValue - 0.0) < 0.001)
@@ -182,11 +183,11 @@ struct ImagePreprocessorTests {
             return
         }
 
-        // Verify output shape
-        #expect(output.shape[0] == 1)
-        #expect(output.shape[1] == 3)
-        #expect(output.shape[2] == 224)
-        #expect(output.shape[3] == 224)
+        // Verify output shape [B, H, W, C] (channels-last)
+        #expect(output.shape[0] == 1)   // Batch
+        #expect(output.shape[1] == 224) // Height
+        #expect(output.shape[2] == 224) // Width
+        #expect(output.shape[3] == 3)   // Channels
     }
 
     @Test("CGImage different sizes are resized")
@@ -218,9 +219,9 @@ struct ImagePreprocessorTests {
                 continue
             }
 
-            // All should be resized to 224x224
-            #expect(output.shape[2] == 224)
-            #expect(output.shape[3] == 224)
+            // All should be resized to 224x224 [B, H, W, C]
+            #expect(output.shape[1] == 224)  // Height
+            #expect(output.shape[2] == 224)  // Width
         }
     }
 
@@ -239,11 +240,11 @@ struct ImagePreprocessorTests {
 
         let batched = preprocessor.batchPreprocess(images)
 
-        // Should be [3, 3, 224, 224]
-        #expect(batched.shape[0] == 3)  // Batch size
-        #expect(batched.shape[1] == 3)  // Channels
-        #expect(batched.shape[2] == 224) // Height
-        #expect(batched.shape[3] == 224) // Width
+        // Should be [B, H, W, C] (channels-last)
+        #expect(batched.shape[0] == 3)   // Batch size
+        #expect(batched.shape[1] == 224) // Height
+        #expect(batched.shape[2] == 224) // Width
+        #expect(batched.shape[3] == 3)   // Channels
     }
 
     // MARK: - Validation Tests
@@ -281,8 +282,9 @@ struct ImagePreprocessorTests {
         let input = MLXRandom.uniform(low: 0, high: 1, [targetSize, targetSize, 3])
         let output = preprocessor.preprocess(pixels: input)
 
-        #expect(output.shape[2] == targetSize)
-        #expect(output.shape[3] == targetSize)
+        // [B, H, W, C]
+        #expect(output.shape[1] == targetSize)  // Height
+        #expect(output.shape[2] == targetSize)  // Width
     }
 
     // MARK: - Edge Cases
@@ -318,9 +320,9 @@ struct ImagePreprocessorTests {
             return
         }
 
-        // Should be upscaled to 224x224
-        #expect(output.shape[2] == 224)
-        #expect(output.shape[3] == 224)
+        // Should be upscaled to 224x224 [B, H, W, C]
+        #expect(output.shape[1] == 224)  // Height
+        #expect(output.shape[2] == 224)  // Width
     }
 
     @Test("Non-square image preprocessing")
@@ -354,9 +356,9 @@ struct ImagePreprocessorTests {
             return
         }
 
-        // Should be center-cropped to 224x224
-        #expect(output.shape[2] == 224)
-        #expect(output.shape[3] == 224)
+        // Should be center-cropped to 224x224 [B, H, W, C]
+        #expect(output.shape[1] == 224)  // Height
+        #expect(output.shape[2] == 224)  // Width
     }
 
     // MARK: - Value Range Tests

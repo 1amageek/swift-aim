@@ -37,26 +37,25 @@ public class PatchEmbed: Module, UnaryLayer {
     }
 
     /// Forward pass
-    /// - Parameter x: Input image [B, C, H, W]
+    /// - Parameter x: Input image [B, H, W, C] (channels-last, MLX format)
     /// - Returns: Patch embeddings [B, N, D]
     public func callAsFunction(_ x: MLXArray) -> MLXArray {
-        // [B, C, H, W] -> [B, embedDim, H', W']
+        // [B, H, W, C] -> [B, H', W', embedDim]
         var x = projection(x)
 
         let B = x.shape[0]
-        let D = x.shape[1]
+        let H_prime = x.shape[1]
+        let W_prime = x.shape[2]
+        let D = x.shape[3]
 
         // Shape validation: verify patch count is as expected
-        let H_prime = x.shape[2]
-        let W_prime = x.shape[3]
         let actualPatches = H_prime * W_prime
         precondition(actualPatches == numPatches,
                      "Patch count mismatch: expected \(numPatches) patches, got \(actualPatches)")
 
-        // [B, D, H', W'] -> [B, D, N]
-        x = x.reshaped(B, D, numPatches)
+        // [B, H', W', D] -> [B, N, D]
+        x = x.reshaped(B, numPatches, D)
 
-        // [B, D, N] -> [B, N, D]
-        return x.transposed(0, 2, 1)
+        return x
     }
 }

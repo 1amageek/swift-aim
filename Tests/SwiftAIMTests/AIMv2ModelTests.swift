@@ -49,7 +49,7 @@ struct AIMv2ModelTests {
 
         // Create dummy input: batch=2, channels=3, height=224, width=224
         let batchSize = 2
-        let input = MLXRandom.normal([batchSize, 3, 224, 224])
+        let input = MLXRandom.normal([batchSize, 224, 224, 3])
 
         // Forward pass
         let output = model(input)
@@ -76,7 +76,7 @@ struct AIMv2ModelTests {
         )
 
         let model = AIMv2Model(config: config)
-        let input = MLXRandom.normal([1, 3, 224, 224])
+        let input = MLXRandom.normal([1, 224, 224, 3])
 
         // Extract CLS feature
         let clsFeature = model.extractCLSFeature(input)
@@ -100,7 +100,7 @@ struct AIMv2ModelTests {
         )
 
         let model = AIMv2Model(config: config)
-        let input = MLXRandom.normal([2, 3, 224, 224])
+        let input = MLXRandom.normal([2, 224, 224, 3])
 
         // Extract patch features
         let patchFeatures = model.extractPatchFeatures(input)
@@ -153,7 +153,7 @@ struct AIMv2ModelTests {
         #expect(model.posEmbed == nil)
 
         // Forward pass should still work
-        let input = MLXRandom.normal([1, 3, 224, 224])
+        let input = MLXRandom.normal([1, 224, 224, 3])
         let output = model(input)
         #expect(output.shape[1] == 257)
     }
@@ -175,7 +175,7 @@ struct AIMv2ModelTests {
         )
 
         let model = AIMv2Model(config: config)
-        let input = MLXRandom.normal([1, 3, imageSize, imageSize])
+        let input = MLXRandom.normal([1, imageSize, imageSize, 3])
 
         let output = model(input)
 
@@ -184,7 +184,11 @@ struct AIMv2ModelTests {
     }
 
     /// Test input validation - wrong number of channels
-    @Test("Input validation - wrong channels", .bug("https://github.com/user/repo/issues/1"))
+    ///
+    /// This test is disabled because Swift's `precondition` failures cannot be caught
+    /// by test frameworks. The validation logic is correct and will fail at runtime
+    /// with: "Expected 3 channels, got 1"
+    @Test("Input validation - wrong channels", .disabled("Precondition failures cannot be caught in Swift tests"))
     func testInputValidationWrongChannels() {
         let config = AIMv2Configuration(
             modelType: "aimv2-test",
@@ -197,20 +201,19 @@ struct AIMv2ModelTests {
 
         let model = AIMv2Model(config: config)
 
-        // Wrong number of channels (1 instead of 3)
-        let input = MLXRandom.normal([1, 1, 224, 224])
+        // Wrong number of channels (1 instead of 3) - channels-last format
+        let input = MLXRandom.normal([1, 224, 224, 1])
 
-        // This should trigger a precondition failure
-        #expect(performing: {
-            let _ = model(input)
-        }, throws: { error in
-            // Precondition failures can't be caught in Swift, but we document the expected behavior
-            return false
-        })
+        // This would trigger: Precondition failed: Expected 3 channels, got 1
+        let _ = model(input)
     }
 
     /// Test input validation - wrong image size
-    @Test("Input validation - wrong size")
+    ///
+    /// This test is disabled because Swift's `precondition` failures cannot be caught
+    /// by test frameworks. The validation logic is correct and will fail at runtime
+    /// with: "Expected 224x224 images, got 112x112"
+    @Test("Input validation - wrong size", .disabled("Precondition failures cannot be caught in Swift tests"))
     func testInputValidationWrongSize() {
         let config = AIMv2Configuration(
             modelType: "aimv2-test",
@@ -224,15 +227,10 @@ struct AIMv2ModelTests {
         let model = AIMv2Model(config: config)
 
         // Wrong image size (112 instead of 224)
-        let input = MLXRandom.normal([1, 3, 112, 112])
+        let input = MLXRandom.normal([1, 112, 112, 3])
 
-        // This should trigger a precondition failure
-        #expect(performing: {
-            let _ = model(input)
-        }, throws: { error in
-            // Document expected behavior
-            return false
-        })
+        // This would trigger: Precondition failed: Expected 224x224 images, got 112x112
+        let _ = model(input)
     }
 
     /// Test batch size handling
@@ -248,7 +246,7 @@ struct AIMv2ModelTests {
         )
 
         let model = AIMv2Model(config: config)
-        let input = MLXRandom.normal([batchSize, 3, 224, 224])
+        let input = MLXRandom.normal([batchSize, 224, 224, 3])
 
         let output = model(input)
 

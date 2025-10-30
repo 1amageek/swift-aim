@@ -66,7 +66,7 @@ public class ImagePreprocessor {
 
     /// Preprocess image from CGImage
     /// - Parameter image: Input CGImage
-    /// - Returns: Preprocessed tensor [1, 3, H, W] ready for model input, or nil if preprocessing fails
+    /// - Returns: Preprocessed tensor [1, H, W, C] ready for model input (channels-last, MLX format), or nil if preprocessing fails
     public func preprocess(_ image: CGImage) -> MLXArray? {
         do {
             // Resize and crop
@@ -132,7 +132,7 @@ public class ImagePreprocessor {
 
     /// Batch preprocess multiple CGImages efficiently
     /// - Parameter images: Array of CGImages
-    /// - Returns: Batched tensor [B, 3, H, W], or nil if any preprocessing fails
+    /// - Returns: Batched tensor [B, H, W, C] (channels-last, MLX format), or nil if any preprocessing fails
     public func batchPreprocess(_ images: [CGImage]) -> MLXArray? {
         // Preprocess all images
         var processedImages: [MLXArray] = []
@@ -194,23 +194,26 @@ public class ImagePreprocessor {
 
     #endif
 
-    /// Normalize and transpose tensor from [H, W, C] to [1, C, H, W]
+    /// Normalize tensor from [H, W, C] to [1, H, W, C]
+    /// MLX uses channels-last format
     private func normalizeAndTranspose(_ pixels: MLXArray) -> MLXArray {
-        // Split into channels [H, W, 3] -> 3 x [H, W]
+        // Normalize each channel: (pixel - mean) / std
+        // Extract and normalize each channel separately
         var normalizedChannels: [MLXArray] = []
 
         for c in 0..<3 {
             let channel = pixels[0..., 0..., c]
-            // Normalize: (pixel - mean) / std
-            let normalized = (channel - mean[c]) / std[c]
-            normalizedChannels.append(normalized)
+            let normalizedChannel = (channel - mean[c]) / std[c]
+            // Expand to [H, W, 1] to prepare for stacking
+            normalizedChannels.append(normalizedChannel.expandedDimensions(axis: 2))
         }
 
-        // Stack channels [3, H, W]
-        let stacked = MLX.stacked(normalizedChannels, axis: 0)
+        // Stack channels: [H, W, C]
+        let normalized = MLX.concatenated(normalizedChannels, axis: 2)
 
-        // Add batch dimension [1, 3, H, W]
-        return stacked.expandedDimensions(axis: 0)
+        // Add batch dimension [1, H, W, C]
+        // MLX uses channels-last format, so no transpose needed
+        return normalized.expandedDimensions(axis: 0)
     }
 
     /// Preprocess from raw pixel data [H, W, C] in range [0, 1]
@@ -221,10 +224,10 @@ public class ImagePreprocessor {
     ///
     /// - Parameter pixels: Raw pixel tensor [H, W, 3] with values in [0, 1]
     ///                     **Must already be resized to imageSize**
-    /// - Returns: Preprocessed tensor [1, 3, H, W]
+    /// - Returns: Preprocessed tensor [1, H, W, C] (channels-last, MLX format)
     /// - Precondition: pixels must be [imageSize, imageSize, 3]
     ///
-    /// - Note: This method only performs normalization and channel reordering.
+    /// - Note: This method only performs normalization. No channel reordering needed (already channels-last).
     ///         If you need resizing, either:
     ///         1. Use `preprocess(_ image: CGImage)` which handles resizing automatically
     ///         2. Manually resize your MLXArray before calling this method
@@ -245,7 +248,7 @@ public class ImagePreprocessor {
 
     /// Batch preprocess multiple images
     /// - Parameter images: Array of pixel tensors [H, W, C]
-    /// - Returns: Batched tensor [B, 3, H, W]
+    /// - Returns: Batched tensor [B, H, W, C] (channels-last, MLX format)
     public func batchPreprocess(_ images: [MLXArray]) -> MLXArray {
         let processed = images.map { preprocess(pixels: $0) }
         return MLX.concatenated(processed, axis: 0)
@@ -256,7 +259,7 @@ public class ImagePreprocessor {
 extension ImagePreprocessor {
     /// Preprocess image from NSImage (macOS)
     /// - Parameter image: Input NSImage
-    /// - Returns: Preprocessed tensor [1, 3, H, W]
+    /// - Returns: Preprocessed tensor [1, H, W, C] (channels-last, MLX format)
     public func preprocess(_ image: NSImage) -> MLXArray? {
         guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
             return nil
@@ -270,7 +273,7 @@ extension ImagePreprocessor {
 extension ImagePreprocessor {
     /// Preprocess image from UIImage (iOS)
     /// - Parameter image: Input UIImage
-    /// - Returns: Preprocessed tensor [1, 3, H, W]
+    /// - Returns: Preprocessed tensor [1, H, W, C] (channels-last, MLX format)
     public func preprocess(_ image: UIImage) -> MLXArray? {
         guard let cgImage = image.cgImage else {
             return nil

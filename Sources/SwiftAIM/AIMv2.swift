@@ -122,21 +122,21 @@ public class AIMv2 {
     #endif
 
     /// Encode preprocessed pixels to features
-    /// - Parameter pixels: Preprocessed pixel tensor [B, 3, H, W]
+    /// - Parameter pixels: Preprocessed pixel tensor [B, H, W, C] (channels-last, MLX format)
     /// - Returns: Feature tensor [B, N+1, D]
     public func encode(pixels: MLXArray) -> MLXArray {
         return model(pixels)
     }
 
     /// Extract CLS token feature from preprocessed pixels
-    /// - Parameter pixels: Preprocessed pixel tensor [B, 3, H, W]
+    /// - Parameter pixels: Preprocessed pixel tensor [B, H, W, C] (channels-last, MLX format)
     /// - Returns: CLS feature [B, D]
     public func extractCLSFeature(pixels: MLXArray) -> MLXArray {
         return model.extractCLSFeature(pixels)
     }
 
     /// Extract patch features from preprocessed pixels
-    /// - Parameter pixels: Preprocessed pixel tensor [B, 3, H, W]
+    /// - Parameter pixels: Preprocessed pixel tensor [B, H, W, C] (channels-last, MLX format)
     /// - Returns: Patch features [B, N, D]
     public func extractPatchFeatures(pixels: MLXArray) -> MLXArray {
         return model.extractPatchFeatures(pixels)

@@ -73,17 +73,17 @@ public class AIMv2Model: Module {
     }
 
     /// Forward pass (inference)
-    /// - Parameter pixels: Image tensor [B, C, H, W]
+    /// - Parameter pixels: Image tensor [B, H, W, C] (channels-last, MLX format)
     /// - Returns: Feature tensor [B, N+1, D] (N=number of patches, D=hiddenSize)
     public func callAsFunction(_ pixels: MLXArray) -> MLXArray {
         // Input validation
-        precondition(pixels.ndim == 4, "Expected 4D input [B, C, H, W], got \(pixels.ndim)D")
-        precondition(pixels.shape[1] == config.numChannels,
-                     "Expected \(config.numChannels) channels, got \(pixels.shape[1])")
-        precondition(pixels.shape[2] == config.imageSize && pixels.shape[3] == config.imageSize,
-                     "Expected \(config.imageSize)x\(config.imageSize) images, got \(pixels.shape[2])x\(pixels.shape[3])")
+        precondition(pixels.ndim == 4, "Expected 4D input [B, H, W, C], got \(pixels.ndim)D")
+        precondition(pixels.shape[1] == config.imageSize && pixels.shape[2] == config.imageSize,
+                     "Expected \(config.imageSize)x\(config.imageSize) images, got \(pixels.shape[1])x\(pixels.shape[2])")
+        precondition(pixels.shape[3] == config.numChannels,
+                     "Expected \(config.numChannels) channels, got \(pixels.shape[3])")
 
-        // Patch embedding: [B, C, H, W] -> [B, N, D]
+        // Patch embedding: [B, H, W, C] -> [B, N, D]
         var x = patchEmbed(pixels)
 
         // Add CLS token: [B, N, D] -> [B, N+1, D]
@@ -108,7 +108,7 @@ public class AIMv2Model: Module {
     }
 
     /// Extract CLS feature (for classification tasks)
-    /// - Parameter pixels: Image tensor [B, C, H, W]
+    /// - Parameter pixels: Image tensor [B, H, W, C] (channels-last, MLX format)
     /// - Returns: CLS feature [B, D]
     public func extractCLSFeature(_ pixels: MLXArray) -> MLXArray {
         let features = self(pixels)
@@ -116,7 +116,7 @@ public class AIMv2Model: Module {
     }
 
     /// Extract all patch features (for detection tasks)
-    /// - Parameter pixels: Image tensor [B, C, H, W]
+    /// - Parameter pixels: Image tensor [B, H, W, C] (channels-last, MLX format)
     /// - Returns: Patch features [B, N, D]
     public func extractPatchFeatures(_ pixels: MLXArray) -> MLXArray {
         let features = self(pixels)
