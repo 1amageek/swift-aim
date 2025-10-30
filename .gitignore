@@ -1,0 +1,71 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Swift Package Manager
+/.build
+/Packages
+.swiftpm/
+Package.resolved
+
+# Xcode
+xcuserdata/
+DerivedData/
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+*.xcworkspace/*
+!*.xcworkspace/contents.xcworkspacedata
+!*.xcworkspace/xcshareddata/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Build products
+*.o
+*.lo
+*.la
+*.a
+*.dylib
+*.framework
+
+# Model files (large binaries from HuggingFace)
+*.safetensors
+*.bin
+*.onnx
+*.ot
+*.mlmodel
+*.mlmodelc
+*.mlpackage
+
+# HuggingFace cache
+models/
+.cache/
+huggingface/
+
+# Testing
+.build-test/
+*.profraw
+*.profdata
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Credentials
+.netrc
+*.pem
+*.key
+
+# Other
+*.orig
+*.log
+*.tmp
+.env
